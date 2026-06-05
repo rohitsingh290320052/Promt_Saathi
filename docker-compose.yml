@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: promtsaathi-db
+    environment:
+      POSTGRES_USER: promtsaathi
+      POSTGRES_PASSWORD: promtsaathi_dev_password
+      POSTGRES_DB: promtsaathi_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U promtsaathi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - promtsaathi-network
+
+  api:
+    build:
+      context: .
+      dockerfile: artifacts/api-server/Dockerfile
+    container_name: promtsaathi-api
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: postgresql://promtsaathi:promtsaathi_dev_password@postgres:5432/promtsaathi_dev
+      PORT: 5000
+      NODE_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - promtsaathi-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  promtsaathi-network:
+    driver: bridge

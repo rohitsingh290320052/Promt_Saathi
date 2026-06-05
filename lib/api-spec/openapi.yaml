@@ -1,0 +1,751 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: PromptBridge & Natural Calamity Detector API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: prompts
+    description: Prompt generation and management
+  - name: openai
+    description: OpenAI AI chat and image operations
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /prompts/generate:
+    post:
+      operationId: generatePrompt
+      tags: [prompts]
+      summary: Generate an AI prompt from user description (supports Hindi/English)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PromptGenerateInput"
+      responses:
+        "200":
+          description: Generated prompts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromptGenerateResult"
+
+  /prompts/refine:
+    post:
+      operationId: refinePrompt
+      tags: [prompts]
+      summary: Refine an existing prompt (make more detailed, simpler, different tone)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PromptRefineInput"
+      responses:
+        "200":
+          description: Refined prompt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromptGenerateResult"
+
+  /saved-prompts:
+    get:
+      operationId: listSavedPrompts
+      tags: [prompts]
+      summary: List saved prompts
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+        - in: query
+          name: taskType
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of saved prompts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SavedPrompt"
+    post:
+      operationId: savePrompt
+      tags: [prompts]
+      summary: Save a prompt to history
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SavedPromptInput"
+      responses:
+        "201":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedPrompt"
+
+  /saved-prompts/{id}:
+    get:
+      operationId: getSavedPrompt
+      tags: [prompts]
+      summary: Get a saved prompt
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Saved prompt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedPrompt"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteSavedPrompt
+      tags: [prompts]
+      summary: Delete a saved prompt
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /prompt-templates:
+    get:
+      operationId: listPromptTemplates
+      tags: [prompts]
+      summary: List pre-built prompt templates
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+        - in: query
+          name: taskType
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PromptTemplate"
+
+  /prompt-templates/{id}:
+    get:
+      operationId: getPromptTemplate
+      tags: [prompts]
+      summary: Get a prompt template
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromptTemplate"
+        "404":
+          description: Not found
+
+  /prompts/stats:
+    get:
+      operationId: getPromptStats
+      tags: [prompts]
+      summary: Get usage statistics
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromptStats"
+
+  /prompts/popular-templates:
+    get:
+      operationId: getPopularTemplates
+      tags: [prompts]
+      summary: Get most-used templates across all categories
+      responses:
+        "200":
+          description: Popular templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PromptTemplate"
+
+  /agents/run:
+    post:
+      operationId: runAgents
+      tags: [prompts]
+      summary: Run multiple AI agents in parallel and return direct responses
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentRunInput"
+      responses:
+        "200":
+          description: Multi-agent results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentRunResult"
+
+  /openai/conversations:
+    get:
+      operationId: listOpenaiConversations
+      tags: [openai]
+      summary: List all conversations
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OpenaiConversation"
+    post:
+      operationId: createOpenaiConversation
+      tags: [openai]
+      summary: Create a new conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OpenaiConversationInput"
+      responses:
+        "201":
+          description: Created conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiConversation"
+
+  /openai/conversations/{id}:
+    get:
+      operationId: getOpenaiConversation
+      tags: [openai]
+      summary: Get conversation with messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Conversation with messages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiConversationWithMessages"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiError"
+    delete:
+      operationId: deleteOpenaiConversation
+      tags: [openai]
+      summary: Delete a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiError"
+
+  /openai/conversations/{id}/messages:
+    get:
+      operationId: listOpenaiMessages
+      tags: [openai]
+      summary: List messages in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OpenaiMessage"
+    post:
+      operationId: sendOpenaiMessage
+      tags: [openai]
+      summary: Send a text message (SSE streaming response)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OpenaiMessageInput"
+      responses:
+        "200":
+          description: SSE stream
+          content:
+            text/event-stream: {}
+
+  /openai/generate-image:
+    post:
+      operationId: generateOpenaiImage
+      tags: [openai]
+      summary: Generate an image from a text prompt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OpenaiImageInput"
+      responses:
+        "200":
+          description: Generated image data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiImageOutput"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+
+    PromptGenerateInput:
+      type: object
+      required: [description, taskType]
+      properties:
+        description:
+          type: string
+          description: User's description in Hindi or English
+        taskType:
+          type: string
+          description: "chatgpt | image_midjourney | image_dalle | image_stable_diffusion | video_ai | writing | coding | business | education | creative | personal"
+        tone:
+          type: string
+          description: "professional | casual | creative | simple | detailed"
+        targetAudience:
+          type: string
+        language:
+          type: string
+          description: Input language hint (hi=Hindi, en=English)
+        complexity:
+          type: string
+          description: "standard | complex — complex adds structured prompts and task breakdown for multi-step work"
+          enum: [standard, complex]
+
+    TaskBreakdownStep:
+      type: object
+      required: [step, title, description]
+      properties:
+        step:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+
+    PromptGenerateResult:
+      type: object
+      required: [prompts, taskType, hindiExplanation]
+      properties:
+        prompts:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeneratedPromptVariant"
+        taskType:
+          type: string
+        hindiExplanation:
+          type: string
+          description: Explanation of the prompt in Hindi
+        tips:
+          type: array
+          items:
+            type: string
+        taskBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaskBreakdownStep"
+          description: Sub-steps for complex tasks (only when complexity=complex)
+
+    GeneratedPromptVariant:
+      type: object
+      required: [prompt, label, platform]
+      properties:
+        prompt:
+          type: string
+        label:
+          type: string
+          description: "Detailed | Simple | Professional | Creative"
+        platform:
+          type: string
+          description: "ChatGPT | Midjourney | DALL-E | Stable Diffusion | General"
+        copyUrl:
+          type: ["string", "null"]
+
+    PromptRefineInput:
+      type: object
+      required: [originalPrompt, refineAction, taskType]
+      properties:
+        originalPrompt:
+          type: string
+        refineAction:
+          type: string
+          description: "more_detailed | simpler | more_creative | more_professional | different_tone"
+        taskType:
+          type: string
+        additionalContext:
+          type: string
+
+    SavedPrompt:
+      type: object
+      required: [id, prompt, taskType, category, createdAt, isFavorite]
+      properties:
+        id:
+          type: integer
+        prompt:
+          type: string
+        taskType:
+          type: string
+        category:
+          type: string
+        label:
+          type: ["string", "null"]
+        platform:
+          type: ["string", "null"]
+        originalDescription:
+          type: ["string", "null"]
+        hindiExplanation:
+          type: ["string", "null"]
+        isFavorite:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    SavedPromptInput:
+      type: object
+      required: [prompt, taskType, category]
+      properties:
+        prompt:
+          type: string
+        taskType:
+          type: string
+        category:
+          type: string
+        label:
+          type: string
+        platform:
+          type: string
+        originalDescription:
+          type: string
+        hindiExplanation:
+          type: string
+        isFavorite:
+          type: boolean
+
+    PromptTemplate:
+      type: object
+      required: [id, title, titleHindi, description, descriptionHindi, prompt, taskType, category, platform, usageCount, tags]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        titleHindi:
+          type: string
+        description:
+          type: string
+        descriptionHindi:
+          type: string
+        prompt:
+          type: string
+        taskType:
+          type: string
+        category:
+          type: string
+        platform:
+          type: string
+        usageCount:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: string
+
+    PromptStats:
+      type: object
+      required: [totalGenerated, totalSaved, totalTemplates, topTaskTypes, recentActivity]
+      properties:
+        totalGenerated:
+          type: integer
+        totalSaved:
+          type: integer
+        totalTemplates:
+          type: integer
+        topTaskTypes:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaskTypeCount"
+        recentActivity:
+          type: integer
+          description: Prompts generated in the last 7 days
+
+    TaskTypeCount:
+      type: object
+      required: [taskType, count]
+      properties:
+        taskType:
+          type: string
+        count:
+          type: integer
+
+    OpenaiConversation:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, title, createdAt]
+
+    OpenaiMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        role:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, conversationId, role, content, createdAt]
+
+    OpenaiConversationInput:
+      type: object
+      properties:
+        title:
+          type: string
+      required: [title]
+
+    OpenaiMessageInput:
+      type: object
+      properties:
+        content:
+          type: string
+      required: [content]
+
+    OpenaiConversationWithMessages:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/OpenaiMessage"
+      required: [id, title, createdAt, messages]
+
+    OpenaiImageInput:
+      type: object
+      properties:
+        prompt:
+          type: string
+        size:
+          type: string
+          enum: ["1024x1024", "1536x1024", "1024x1536"]
+      required: [prompt]
+
+    OpenaiImageOutput:
+      type: object
+      properties:
+        b64_json:
+          type: string
+      required: [b64_json]
+
+    AgentRunInput:
+      type: object
+      required: [description, taskType]
+      properties:
+        description:
+          type: string
+          description: User's request in Hindi or English
+        taskType:
+          type: string
+        tone:
+          type: string
+        targetAudience:
+          type: string
+
+    AgentResult:
+      type: object
+      required: [agentName, agentRole, agentEmoji, content, contentType]
+      properties:
+        agentName:
+          type: string
+        agentRole:
+          type: string
+          description: Short role description shown to user
+        agentEmoji:
+          type: string
+        model:
+          type: string
+          description: The AI model that powered this response (e.g. gpt-5.4, claude-sonnet-4-6)
+        content:
+          type: string
+          description: The actual AI-generated response/content
+        contentType:
+          type: string
+          description: "text | markdown | code | image_base64 | prompt_only"
+        language:
+          type: string
+        hindiSummary:
+          type: ["string", "null"]
+        imageBase64:
+          type: ["string", "null"]
+          description: Base64-encoded image for image generation results
+        navigateTo:
+          type: ["string", "null"]
+          description: URL to open the AI platform with the generated prompt pre-filled
+
+    AgentAlternative:
+      type: object
+      required: [name, emoji, url, why]
+      properties:
+        name:
+          type: string
+        emoji:
+          type: string
+        url:
+          type: string
+        why:
+          type: string
+
+    AgentRecommendation:
+      type: object
+      required: [bestAI, bestAIEmoji, bestAIUrl, canDirectRespond, reason, reasonHindi]
+      properties:
+        bestAI:
+          type: string
+          description: Name of the best AI for this task
+        bestAIEmoji:
+          type: string
+        bestAIUrl:
+          type: string
+          description: URL to the best AI platform
+        canDirectRespond:
+          type: boolean
+          description: Whether PromptBridge can give a direct response for this task
+        reason:
+          type: string
+          description: Why this AI is best (English)
+        reasonHindi:
+          type: string
+          description: Why this AI is best (Hindi)
+        alternatives:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgentAlternative"
+
+    AgentRunResult:
+      type: object
+      required: [agents, taskType, hindiOverview]
+      properties:
+        agents:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgentResult"
+        taskType:
+          type: string
+        hindiOverview:
+          type: string
+          description: Brief Hindi overview of all responses
+        recommendation:
+          $ref: "#/components/schemas/AgentRecommendation"
+
+    OpenaiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]

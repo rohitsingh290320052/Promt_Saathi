@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/prompt-bridge/"
+title = "PromptBridge"
+version = "1.0.0"
+id = "artifacts/prompt-bridge"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/prompt-bridge/" ]
+localPort = 24564
+
+[services.development]
+run = "pnpm --filter @workspace/prompt-bridge run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/prompt-bridge", "run", "build" ]
+publicDir = "artifacts/prompt-bridge/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24564"
+BASE_PATH = "/prompt-bridge/"
