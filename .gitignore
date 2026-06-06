@@ -55,7 +55,3 @@ Thumbs.db
 .WINDOWS_QUICK_START.md
 SETUP_GUIDE.md
 SETUP_CHECKLIST.md
-package-lock.json
-package.json
-pnpm-lock.yaml
-pnpm-workspace.yaml
