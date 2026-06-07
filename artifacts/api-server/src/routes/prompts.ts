@@ -12,8 +12,18 @@ import {
   ListPromptTemplatesQueryParams,
   GetPromptTemplateParams,
   GetPromptStatsResponse,
-} from "@workspace/api-zod";
-import { openai } from "@workspace/integrations-openai-ai-server";
+} 
+from "@workspace/api-zod"; 
+
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const genAI = new GoogleGenerativeAI(
+  process.env.GEMINI_API_KEY!
+);
+
+const model = genAI.getGenerativeModel({
+  model: "gemini-1.5-flash",
+});
 
 const router: IRouter = Router();
 
@@ -103,16 +113,13 @@ Respond ONLY in this exact JSON format:
   "tips": ["...", "...", "..."]
 }`;
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4.1",
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userMessage },
-    ],
-    response_format: { type: "json_object" },
-  });
+ const result = await model.generateContent(
+  `${systemPrompt}\n\n${userMessage}`
+);
 
-  const raw = completion.choices[0]?.message?.content ?? "{}";
+const raw = result.response.text() ?? "{}";
+
+
   let parsed2: {
     prompts?: Array<{ prompt: string; label: string; platform: string }>;
     hindiExplanation?: string;
@@ -175,16 +182,13 @@ Respond ONLY in this exact JSON format:
   "tips": ["...", "..."]
 }`;
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4.1",
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userMessage },
-    ],
-    response_format: { type: "json_object" },
-  });
+  const result = await model.generateContent(
+  `${systemPrompt}\n\n${userMessage}`
+);
 
-  const raw = completion.choices[0]?.message?.content ?? "{}";
+const raw = result.response.text() ?? "{}";
+
+
   let parsed2: { prompts?: Array<{ prompt: string; label: string; platform: string }>; hindiExplanation?: string; tips?: string[] };
   try {
     parsed2 = JSON.parse(raw);
