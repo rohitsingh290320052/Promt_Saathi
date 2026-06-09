@@ -26,6 +26,7 @@ const model = genAI.getGenerativeModel({
 });
 
 const router: IRouter = Router();
+console.log("PROMPTS ROUTER LOADED");
 
 const TASK_TYPE_SYSTEM_PROMPTS: Record<string, string> = {
   chatgpt: `You are an expert prompt engineer specializing in creating highly effective prompts for ChatGPT and large language models. Generate clear, specific, and effective prompts that will get the best results from AI chatbots.`,
