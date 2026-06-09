@@ -113,11 +113,25 @@ Respond ONLY in this exact JSON format:
   "tips": ["...", "...", "..."]
 }`;
 
- const result = await model.generateContent(
-  `${systemPrompt}\n\n${userMessage}`
-);
+ let raw = "{}";
 
-const raw = result.response.text() ?? "{}";
+try {
+  const result = await model.generateContent(
+    `${systemPrompt}\n\n${userMessage}`
+  );
+
+  raw = result.response.text() || "{}";
+
+  console.log("Gemini response:", raw);
+} catch (error) {
+  console.error("Gemini Error:", error);
+
+  res.status(500).json({
+    error: "Gemini generation failed",
+  });
+
+  return;
+}
 
 
   let parsed2: {
@@ -127,7 +141,12 @@ const raw = result.response.text() ?? "{}";
     taskBreakdown?: Array<{ step: number; title: string; description: string }>;
   };
   try {
-    parsed2 = JSON.parse(raw);
+    const cleaned = raw
+  .replace(/```json/g, "")
+  .replace(/```/g, "")
+  .trim();
+
+parsed2 = JSON.parse(cleaned);
   } catch {
     parsed2 = { prompts: [], hindiExplanation: "प्रॉम्प्ट तैयार हो गया।", tips: [] };
   }
@@ -182,16 +201,35 @@ Respond ONLY in this exact JSON format:
   "tips": ["...", "..."]
 }`;
 
-  const result = await model.generateContent(
-  `${systemPrompt}\n\n${userMessage}`
-);
+ let raw = "{}";
 
-const raw = result.response.text() ?? "{}";
+try {
+  const result = await model.generateContent(
+    `${systemPrompt}\n\n${userMessage}`
+  );
+
+  raw = result.response.text() || "{}";
+
+  console.log("Gemini refine response:", raw);
+} catch (error) {
+  console.error("Gemini Refine Error:", error);
+
+  res.status(500).json({
+    error: "Gemini refine failed",
+  });
+
+  return;
+}
 
 
   let parsed2: { prompts?: Array<{ prompt: string; label: string; platform: string }>; hindiExplanation?: string; tips?: string[] };
   try {
-    parsed2 = JSON.parse(raw);
+    const cleaned = raw
+  .replace(/```json/g, "")
+  .replace(/```/g, "")
+  .trim();
+
+parsed2 = JSON.parse(cleaned);
   } catch {
     parsed2 = { prompts: [], hindiExplanation: "प्रॉम्प्ट सुधार किया गया।", tips: [] };
   }
