@@ -42,6 +42,9 @@ const TASK_TYPE_SYSTEM_PROMPTS: Record<string, string> = {
 };
 
 router.post("/prompts/generate", async (req, res): Promise<void> => {
+  console.log("PROMPT GENERATE HIT");
+  console.log("BODY:", req.body);
+
   const parsed = GeneratePromptBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -163,6 +166,9 @@ parsed2 = JSON.parse(cleaned);
 });
 
 router.post("/prompts/refine", async (req, res): Promise<void> => {
+  console.log("PROMPT REFINE HIT");
+  console.log("BODY:", req.body);
+
   const parsed = RefinePromptBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
